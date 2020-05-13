@@ -6,7 +6,13 @@ library(lubridate)
 library(rstatix)
 library(ggpubr)
 library(patchwork)
-setwd("/Users/jennaekwealor/Documents/3dmoss/hypoliths/wrightwood/")
+library(dplyr)
+
+
+setwd("/Users/jennaekwealor/Documents/3dmoss/hypolithic-moss/wrightwood/")
+cols <- c("Hypolithic" = "#7FC97F", "Surface" = "#BEAED4")
+temp ="#FDC086" 
+RH = "#FFFF99"
 
 source('../ibutton.functions.R')
 
@@ -66,8 +72,87 @@ ibutton.df.RH$habitat <- ifelse(grepl("surface", ibutton.df.RH$ibutton), "Surfac
 ibutton.df.temp$Date.Time <- as.POSIXct(ibutton.df.temp$Date.Time)
 ibutton.df.RH$Date.Time <- as.POSIXct(ibutton.df.RH$Date.Time)
 
+ibutton.df.temp$habitat <- as.factor(ibutton.df.temp$habitat)
+ibutton.df.RH$habitat <- as.factor(ibutton.df.RH$habitat)
 
-# temp
+##### temp #####
+
+##### probability density function for bins of temperature ####
+ibutton.df.temp %>% 
+  mutate(date = date(Date.Time)) %>% 
+  group_by(habitat) %>% 
+  ggplot() + 
+  # geom_density(aes(x=Value, fill = habitat)) +
+  geom_histogram(aes(x=Value, fill = habitat), binwidth = 2, color = "black") +
+  facet_wrap(~habitat) +
+  scale_fill_manual(name = "Microhabitat", values = cols) +
+  theme_minimal() + 
+  xlab("Temperature (°C)") +
+  ylab("Density") 
+
+# calculate differences 
+ibutton.df.temp %>% 
+  mutate(date = date(Date.Time)) %>% 
+  dplyr::filter(habitat == "Surface") -> surface.temp
+
+ibutton.df.temp %>% 
+  mutate(date = date(Date.Time)) %>% 
+  dplyr::filter(habitat == "Hypolithic") -> hypolithic.temp
+
+# combine differences into a df with Date.Time and diff 
+diff <- surface.temp$Value - hypolithic.temp$Value
+Date.Time <- ibutton.df.temp$Date.Time[1:length(diff)]
+
+tempdiff <- data.frame("diff" = diff,
+                       "Date.Time" = Date.Time
+)
+
+
+# density function of temp differences
+
+tempdiff %>% 
+  mutate(date = date(Date.Time)) %>% 
+  ggplot() + 
+  # geom_density(aes(x=Value, fill = habitat)) +
+  geom_histogram(aes(y=..density..,x=diff), binwidth = 2, color = "black", fill = temp) +
+  # scale_fill_manual(name = "Microhabitat", values = cols) +
+  theme_minimal() + 
+  xlab("Difference in temperature (surface - hypolithic,°C)") +
+  ylab("Density") -> p.tempdiff
+
+p.tempdiff
+
+# pull out pdf data
+ggplot_build(p.tempdiff) 
+pdf.tempdiff <- (ggplot_build(p.tempdiff))$data[[1]]
+
+# add columns that estimate the number of minutes in each bin
+# these data were collected every hour so each point in the pdf reperesents an hour
+# however, if there are 2 points in a bin, it may be only 1 hour 
+# so all counts/bin have to have 1 subtracted from it
+# (all bins have at least 2 points)
+pdf.tempdiff %>% mutate(hours = count - 1) -> pdf.tempdiff
+
+
+#### plot tempdiff ####
+
+# color lines based on day and night for temperature buffering hypothesis
+tempdiff$Date <- date(tempdiff$Date.Time)
+# pull out hour and add one because data were logged at the :59 minute of each our
+tempdiff$Hour <- (hour(tempdiff$Date.Time))+1
+
+
+tempdiff %>% mutate(daynight = ifelse(Hour >= 6 & Hour < 18, "day","night")) -> tempdiff
+tempdiff %>% mutate(daynight_color = ifelse(daynight == "day", "\'blue\'", "\'black\'")) -> tempdiff
+
+ggplot(data = tempdiff) +
+  geom_line(size = 0.2, aes(x = Date.Time, y = diff, color = daynight, group = 1)) +
+  scale_color_manual(values = c("skyblue", "midnightblue"),labels = c("Day", "Night"), name = "") +
+  theme_light() + 
+  xlab("") +
+  ylab("Difference in temperature (surface - hypolithic,°C)") +
+  theme_light()
+
 
 ############ pull out the high TEMP from each day, for each habitat ############
 ibutton.df.temp %>% 
@@ -193,7 +278,152 @@ pwc.ibutton.df.temp.dailylow <- pwc.ibutton.df.temp.dailylow %>% add_xy_position
 
 ####### RH ########
 
-# pull out the high RH from each day, for each habitat 
+##### probability density function for bins of RH ####
+ibutton.df.RH %>% 
+  mutate(date = date(Date.Time)) %>% 
+  group_by(habitat) %>% 
+  ggplot() + 
+  # geom_density(aes(x=Value, fill = habitat)) +
+  geom_histogram(aes(x=Value, fill = habitat), binwidth = 10, color = "black") +
+  facet_wrap(~habitat) +
+  scale_fill_manual(name = "Microhabitat", values = cols) +
+  theme_minimal() + 
+  xlab("Relative Humidity (%)") +
+  ylab("Density") 
+
+# plot differences instead
+ibutton.df.RH %>% 
+  mutate(date = date(Date.Time)) %>% 
+  dplyr::filter(habitat == "Surface") -> surface.RH
+
+ibutton.df.RH %>% 
+  mutate(date = date(Date.Time)) %>% 
+  dplyr::filter(habitat == "Hypolithic") -> hypolithic.RH
+
+# combine differences into a df with Date.Time and diff 
+diff <- hypolithic.RH$Value - surface.RH$Value
+Date.Time <- ibutton.df.RH$Date.Time[1:length(diff)]
+
+RHdiff <- data.frame("diff" = diff,
+                       "Date.Time" = Date.Time
+)
+
+
+# density function of RH differences
+
+RHdiff %>% 
+  mutate(date = date(Date.Time)) %>% 
+  ggplot() + 
+  # geom_density(aes(x=Value, fill = habitat)) +
+  geom_histogram(aes(y=..count..,x=diff), binwidth = 10, color = "black", fill = RH) +
+  # scale_fill_manual(name = "Microhabitat", values = cols) +
+  theme_minimal() + 
+  xlab("Difference in relative humidity (hypolithic - surface, %)") +
+  ylab("Count") -> p.RHdiff
+
+p.RHdiff
+
+pdf.RHdiff <- (ggplot_build(p.RHdiff))$data[[1]]
+
+
+# density function of RH differences with fewer bins to quantify hours of more favorable conditions
+
+RHdiff %>% 
+  mutate(date = date(Date.Time)) %>% 
+  ggplot() + 
+  # geom_density(aes(x=Value, fill = habitat)) +
+  geom_histogram(aes(y=..count..,x=diff), binwidth = 10, color = "black", fill = RH) +
+  # scale_fill_manual(name = "Microhabitat", values = cols) +
+  theme_minimal() + 
+  xlab("Difference in relative humidity (hypolithic - surface, %)") +
+  ylab("Count") -> p.RHdiff.fewbins
+
+p.RHdiff.fewbins
+
+pdf.RHdiff.fewbins <- (ggplot_build(p.RHdiff.fewbins))$data[[1]]
+
+# filter out and sum the points that RH is more than 10% higher in hypos
+increasedRH <- pdf.RHdiff.fewbins %>% dplyr::filter(x > 0) 
+increasedRH <- sum(increasedRH$count)
+
+# filter out and sum the points that RH in hypos is within 10% of surface
+nochangeRH <- pdf.RHdiff.fewbins %>% dplyr::filter(x == 0) 
+nochangeRH <- sum(nochangeRH$count)
+
+# filter out and sum the points that RH is more than 10% less in hypos
+decreasedRH <- pdf.RHdiff.fewbins %>% dplyr::filter(x < 0) 
+decreasedRH <- sum(decreasedRH$count)
+
+increased_pct <- (increasedRH / (increasedRH + nochangeRH + decreasedRH))*100
+# [1] [1] 49.50141
+nochange_pct <- (nochangeRH / (increasedRH + nochangeRH + decreasedRH))*100
+# [1] 32.77934
+decreased_pct <- (decreasedRH / (increasedRH + nochangeRH + decreasedRH))*100
+# [1] 17.71925
+
+
+# density function of RH differences with even fewer bins to quantify hours of more favorable conditions
+
+RHdiff %>% 
+  mutate(date = date(Date.Time)) %>% 
+  ggplot() + 
+  # geom_density(aes(x=Value, fill = habitat)) +
+  geom_histogram(aes(y=..count..,x=diff), binwidth = 20, color = "black", fill = RH) +
+  # scale_fill_manual(name = "Microhabitat", values = cols) +
+  theme_minimal() + 
+  xlab("Difference in relative humidity (hypolithic - surface, %)") +
+  ylab("Count") -> p.RHdiff.fewerbins
+
+p.RHdiff.fewerbins
+
+pdf.RHdiff.fewerbins <- (ggplot_build(p.RHdiff.fewerbins))$data[[1]]
+
+# filter out and sum the points that RH is more than 10% higher in hypos
+increasedRH <- pdf.RHdiff.fewerbins %>% dplyr::filter(x > 0) 
+increasedRH <- sum(increasedRH$count)
+
+# filter out and sum the points that RH in hypos is within 10% of surface
+nochangeRH <- pdf.RHdiff.fewerbins %>% dplyr::filter(x == 0) 
+nochangeRH <- sum(nochangeRH$count)
+
+# filter out and sum the points that RH is more than 10% less in hypos
+decreasedRH <- pdf.RHdiff.fewerbins %>% dplyr::filter(x < 0) 
+decreasedRH <- sum(decreasedRH$count)
+
+increased_pct <- (increasedRH / (increasedRH + nochangeRH + decreasedRH))*100
+# [1] 42.29097
+nochange_pct <- (nochangeRH / (increasedRH + nochangeRH + decreasedRH))*100
+# [1] 46.86781
+decreased_pct <- (decreasedRH / (increasedRH + nochangeRH + decreasedRH))*100
+# [1] 10.84122
+
+# add columns that estimate the number of minutes in each bin
+# these data were collected every hour so each point in the pdf reperesents an hour
+# however, if there are 2 points in a bin, it may be only 1 hour 
+# so all counts/bin have to have 1 subtracted from it
+# (all bins have at least 2 points)
+pdf.RHdiff %>% mutate(hours = count - 1) -> pdf.RHdiff
+
+
+
+#### plot RHdiff ####
+
+# color lines based on day and night for RH buffering hypothesis
+RHdiff$Date <- date(RHdiff$Date.Time)
+# pull out hour and add one because data were logged at the :59 minute of each our
+RHdiff$Hour <- (hour(RHdiff$Date.Time))+1
+
+RHdiff %>% mutate(daynight = ifelse(Hour >= 6 & Hour < 18, "day","night")) -> RHdiff
+RHdiff %>% mutate(daynight_color = ifelse(daynight == "day", "\'blue\'", "\'black\'")) -> RHdiff
+
+ggplot(data = RHdiff) +
+  geom_line(size = 0.2, aes(x = Date.Time, y = diff, color = daynight, group = 1)) +
+  scale_color_manual(values = c("skyblue", "midnightblue"),labels = c("Day", "Night"), name = "") +
+  theme_light() + 
+  xlab("") +
+  ylab("Difference in relative humidity (hypolithic - surface, %)") 
+
+#### pull out the high RH from each day, for each habitat ####
 ibutton.df.RH %>% 
   mutate(date = date(Date.Time)) %>% 
   group_by(date, habitat) %>% 
@@ -379,15 +609,15 @@ bxp.ibutton.df.temp.dailylow <- ggboxplot(
 #bxp.ibutton.df.temp.dailylow
 
 
-# figure 2
-figure2 <- (bxp.ibutton.df.temp.dailylow + bxp.ibutton.df.temp.dailyhigh)
-
-
-pdf("paper/Figure 2.pdf") 
-
-figure2
-
-dev.off()
+# # figure 2
+# figure2 <- (bxp.ibutton.df.temp.dailylow + bxp.ibutton.df.temp.dailyhigh)
+# 
+# 
+# pdf("paper/Figure 2.pdf") 
+# 
+# figure2
+# 
+# dev.off()
 
 
 
@@ -446,14 +676,14 @@ bxp.ibutton.df.RH.dailylow <- ggboxplot(
 
 #bxp.ibutton.df.RH.dailylow
 
-# figure 3
-figure3 <- (bxp.ibutton.df.RH.dailylow + bxp.ibutton.df.RH.dailyhigh)
-
-
-
-pdf("paper/Figure 3.pdf") 
-
-figure3
-
-dev.off()
+# # figure 3
+# figure3 <- (bxp.ibutton.df.RH.dailylow + bxp.ibutton.df.RH.dailyhigh)
+# 
+# 
+# 
+# pdf("paper/Figure 3.pdf") 
+# 
+# figure3
+# 
+# dev.off()
 
