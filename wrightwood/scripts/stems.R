@@ -4,7 +4,7 @@ library(tidyverse)
 library(rstatix)
 library(ggpubr)
 library(infer)
-setwd("/Users/jennaekwealor/Documents/3dmoss/hypoliths/wrightwood/")
+setwd("/Users/jennaekwealor/Documents/3dmoss/hypolithic-moss/wrightwood/")
 
 
 sigfontsize <- 6
@@ -60,20 +60,6 @@ pwc.length
 #   1 length hypolithic surface    50   299     11390 0.00000000306
 
 
-# ggboxplot(length.data, x = "habitat", y = "length", add = "point")
-
-#pwc.length <- pwc.length %>% add_xy_position(x = "habitat")
-
-# bxp.length.data <- ggboxplot(
-#   length.data, x = "habitat", y = "length",
-#   color = "habitat", palette = "Accent",
-#   add = "point",
-# )
-# bxp.length.data + 
-#   stat_pvalue_manual(pwc.length, tip.length = 0, hide.ns = TRUE) +
-#   labs(caption = get_pwc_label(pwc.length)) +
-#   theme(legend.position = "none") 
-
 
 bxp.length.data <- ggboxplot(
   length.data, x = "Habitat", y = "Length",
@@ -125,20 +111,6 @@ pwc.density
 # * <chr>        <chr>      <chr>   <int> <int>     <dbl>  <dbl>
 #   1 leaf.density hypolithic surface    10    23        52 0.0125
 
-
-# ggboxplot(density.data, x = "habitat", y = "leaf.density", add = "point")
-
-#pwc.density <- pwc.density %>% add_xy_position(x = "habitat")
-
-# bxp.density.data <- ggboxplot(
-#   density.data, x = "habitat", y = "leaf.density",
-#   color = "habitat", palette = "Accent",
-#   add = "point",
-# )
-# bxp.density.data + 
-#   stat_pvalue_manual(pwc.density, tip.length = 0, hide.ns = TRUE) +
-#   labs(caption = get_pwc_label(pwc.density)) +
-#   theme(legend.position = "none") 
 
 
 bxp.density.data <- ggboxplot(

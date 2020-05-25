@@ -342,24 +342,24 @@ p.RHdiff.fewbins
 
 pdf.RHdiff.fewbins <- (ggplot_build(p.RHdiff.fewbins))$data[[1]]
 
-# filter out and sum the points that RH is more than 10% higher in hypos
+# filter out and sum the points that RH is more than 5% higher in hypos
 increasedRH <- pdf.RHdiff.fewbins %>% dplyr::filter(x > 0) 
 increasedRH <- sum(increasedRH$count)
 
-# filter out and sum the points that RH in hypos is within 10% of surface
+# filter out and sum the points that RH in hypos is within 5% of surface
 nochangeRH <- pdf.RHdiff.fewbins %>% dplyr::filter(x == 0) 
 nochangeRH <- sum(nochangeRH$count)
 
-# filter out and sum the points that RH is more than 10% less in hypos
+# filter out and sum the points that RH is more than 5% less in hypos
 decreasedRH <- pdf.RHdiff.fewbins %>% dplyr::filter(x < 0) 
 decreasedRH <- sum(decreasedRH$count)
 
 increased_pct <- (increasedRH / (increasedRH + nochangeRH + decreasedRH))*100
-# [1] [1] 49.50141
+# [1] 51.39591
 nochange_pct <- (nochangeRH / (increasedRH + nochangeRH + decreasedRH))*100
-# [1] 32.77934
+# [1] 30.23132
 decreased_pct <- (decreasedRH / (increasedRH + nochangeRH + decreasedRH))*100
-# [1] 17.71925
+# [1] 18.37277
 
 
 # density function of RH differences with even fewer bins to quantify hours of more favorable conditions
@@ -391,11 +391,11 @@ decreasedRH <- pdf.RHdiff.fewerbins %>% dplyr::filter(x < 0)
 decreasedRH <- sum(decreasedRH$count)
 
 increased_pct <- (increasedRH / (increasedRH + nochangeRH + decreasedRH))*100
-# [1] 42.29097
+# [1] 43.8979
 nochange_pct <- (nochangeRH / (increasedRH + nochangeRH + decreasedRH))*100
-# [1] 46.86781
+# [1] 44.85509
 decreased_pct <- (decreasedRH / (increasedRH + nochangeRH + decreasedRH))*100
-# [1] 10.84122
+# [1] 11.24701
 
 # add columns that estimate the number of minutes in each bin
 # these data were collected every hour so each point in the pdf reperesents an hour
