@@ -14,11 +14,11 @@ cols <- c("Hypolithic" = "#7FC97F", "Surface" = "#BEAED4")
 temp ="#FDC086" 
 RH = "#FFFF99"
 
-source('../ibutton.functions.R')
+source('scripts/ibutton.functions.R')
 
 # load ibutton data
-ibutton.data.temp <- read.ibutton.folder("temp")
-ibutton.data.RH <- read.ibutton.folder("RH")
+ibutton.data.temp <- read.ibutton.folder("data/temp")
+ibutton.data.RH <- read.ibutton.folder("data/RH")
 
 ## which ones failed? you could just check the number of rows in each, and pick 
 ## the ones which are suspiciously short, indicating that the ibutton stopped 
