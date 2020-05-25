@@ -17,7 +17,7 @@ yaxisfontsize <- 14
 
 ####### QUARTZ THICKNESS #######
 
-quartz.data <- as.data.frame(read.csv("quartz-thickness.csv"))
+quartz.data <- as.data.frame(read.csv("data/quartz-thickness.csv"))
 mean(quartz.data$thickness)
 # 25.63889
 sd(quartz.data$thickness)
@@ -25,7 +25,7 @@ sd(quartz.data$thickness)
 
 ####### COMMUNITY COMPOSITION  #######
 
-community.data <- as.data.frame(read.csv("community.csv"))  %>% 
+community.data <- as.data.frame(read.csv("data/community.csv"))  %>% 
   select (Habitat, Species) %>% na.omit()
 community.data$Habitat <- factor(community.data$Habitat, levels = c("Hypolithic", "Surface"))
 
@@ -42,7 +42,7 @@ community.data %>% count(Species, Habitat)
 
 
 ####### SHOOT LENGTH #######
-length.data <- as.data.frame(read.csv("stem-length.csv"))
+length.data <- as.data.frame(read.csv("data/stem-length.csv"))
 length.data <- length.data %>% tidyr::gather(Habitat, Length, Surface:Hypolithic) %>% select (Habitat, Length) %>% na.omit()
 length.data$Habitat <- factor(length.data$Habitat, levels = c("Hypolithic", "Surface"))
 
@@ -95,7 +95,7 @@ dev.off()
 
 
 ####### LEAF DENSITY  #######
-density.data <- as.data.frame(read.csv("leaf-density.csv"))
+density.data <- as.data.frame(read.csv("data/leaf-density.csv"))
 density.data <- na.omit(density.data)
 
 #shapiro_test(density.data$leaf.density) # not normal
